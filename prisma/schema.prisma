@@ -1,0 +1,540 @@
+// StudySwap — Prisma Schema
+// PostgreSQL + Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  STUDENT
+  COMPANY
+  ADMIN
+}
+
+enum MaterialStatus {
+  PENDING    // awaiting moderation
+  APPROVED
+  REJECTED
+}
+
+enum MaterialType {
+  PDF
+  DOCX
+  PPT
+  IMAGE
+  LINK
+  OTHER
+}
+
+enum TransactionType {
+  EARN_UPLOAD       // earned from material download
+  EARN_TUTORING     // earned from tutoring session
+  EARN_REVIEW       // earned for writing a review
+  EARN_DAILY        // daily activity bonus
+  EARN_REFERRAL     // referral bonus
+  PURCHASE_CREDITS  // bought credits with real money
+  SPEND_MATERIAL    // spent credits to download a material
+  SPEND_TUTORING    // spent credits for a tutoring session
+  WITHDRAW          // withdrew credits as money
+  REFUND            // refund
+  COMMISSION        // platform commission (15%)
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  FREELANCE
+  REMOTE
+  HYBRID
+}
+
+enum JobStatus {
+  ACTIVE
+  CLOSED
+  DRAFT
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+}
+
+enum TutoringStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  REJECTED
+}
+
+enum KYCStatus {
+  NOT_SUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ForumPostStatus {
+  ACTIVE
+  HIDDEN
+  DELETED
+}
+
+// ─── MODELS ───────────────────────────────────────────────────────────────────
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  emailVerified     DateTime?
+  name              String?
+  image             String?
+  password          String?  // hashed, null for OAuth users
+  role              UserRole @default(STUDENT)
+
+  // Student profile
+  university        String?
+  faculty           String?
+  studyYear         Int?
+  specialization    String?
+  bio               String?
+  interests         String[] // array of interest tags
+  linkedinUrl       String?
+  githubUrl         String?
+  portfolioUrl      String?
+
+  // Company profile (when role = COMPANY)
+  companyName       String?
+  companyWebsite    String?
+  companyDescription String?
+  companyLogo       String?
+
+  // Credit wallet
+  credits           Int      @default(0)
+  totalEarned       Int      @default(0)
+  totalSpent        Int      @default(0)
+
+  // Reputation
+  reputationPoints  Int      @default(0)
+  level             Int      @default(1)
+
+  // KYC for withdrawals
+  kycStatus         KYCStatus @default(NOT_SUBMITTED)
+  kycDocumentUrl    String?
+
+  // Referral system
+  referralCode      String?  @unique
+  referredBy        String?
+
+  // Settings
+  emailNotifications Boolean @default(true)
+  isActive          Boolean  @default(true)
+  isBanned          Boolean  @default(false)
+  banReason         String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  accounts          Account[]
+  sessions          Session[]
+  materials         Material[]
+  reviews           Review[]
+  transactions      Transaction[]
+  withdrawals       Withdrawal[]
+  jobsPosted        Job[]           @relation("JobPoster")
+  applications      JobApplication[]
+  savedJobs         SavedJob[]
+  tutoringOffered   TutoringSession[] @relation("TutorSessions")
+  tutoringBooked    TutoringSession[] @relation("StudentSessions")
+  sentMessages      Message[]       @relation("SentMessages")
+  receivedMessages  Message[]       @relation("ReceivedMessages")
+  forumPosts        ForumPost[]
+  forumComments     ForumComment[]
+  followers         Follow[]        @relation("Following")
+  following         Follow[]        @relation("Follower")
+  notifications     Notification[]
+  downloads         Download[]
+  likes             ForumLike[]
+
+  @@map("users")
+}
+
+// NextAuth models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── MATERIALS ────────────────────────────────────────────────────────────────
+
+model Material {
+  id           String         @id @default(cuid())
+  title        String
+  description  String
+  fileUrl      String?        // Cloudinary URL
+  fileType     MaterialType
+  thumbnailUrl String?
+  category     String         // e.g. "Matematică", "Informatică"
+  subject      String         // e.g. "Analiză Matematică"
+  university   String?
+  faculty      String?
+  studyYear    Int?
+  language     String         @default("ro")
+  tags         String[]
+  isPremium    Boolean        @default(false)
+  creditCost   Int            @default(0)  // 0 = free
+  status       MaterialStatus @default(PENDING)
+
+  // Stats
+  downloadCount Int @default(0)
+  viewCount     Int @default(0)
+  avgRating     Float @default(0)
+
+  authorId     String
+  author       User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  reviews      Review[]
+  downloads    Download[]
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([category, status])
+  @@index([authorId])
+  @@map("materials")
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  rating     Int      // 1-5
+  comment    String?
+  isHelpful  Int      @default(0) // upvotes from others
+
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  materialId String?
+  material   Material? @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  tutoringSessionId String?
+  tutoringSession   TutoringSession? @relation(fields: [tutoringSessionId], references: [id])
+
+  createdAt  DateTime @default(now())
+
+  @@map("reviews")
+}
+
+model Download {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  materialId String
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, materialId])
+  @@map("downloads")
+}
+
+// ─── CREDITS & TRANSACTIONS ───────────────────────────────────────────────────
+
+model Transaction {
+  id          String            @id @default(cuid())
+  type        TransactionType
+  status      TransactionStatus @default(PENDING)
+  amount      Int               // credits amount (positive = earned, negative = spent)
+  description String
+  metadata    Json?             // extra data (stripePaymentIntentId, materialId, etc.)
+
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  stripePaymentIntentId String?
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([userId, createdAt])
+  @@map("transactions")
+}
+
+model Withdrawal {
+  id          String           @id @default(cuid())
+  credits     Int              // credits being withdrawn
+  amountEur   Float            // euros to be paid
+  status      WithdrawalStatus @default(PENDING)
+  method      String           // "IBAN" or "PAYPAL"
+  accountInfo String           // IBAN or PayPal email (encrypted in production)
+  adminNote   String?
+  processedAt DateTime?
+
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("withdrawals")
+}
+
+// ─── JOBS & INTERNSHIPS ───────────────────────────────────────────────────────
+
+model Job {
+  id           String      @id @default(cuid())
+  title        String
+  description  String      @db.Text
+  requirements String      @db.Text
+  benefits     String?     @db.Text
+  salary       String?
+  type         JobType
+  status       JobStatus   @default(ACTIVE)
+  location     String?
+  isRemote     Boolean     @default(false)
+  domain       String      // e.g. "IT", "Finance", "Marketing"
+  deadline     DateTime?
+  isFeatured   Boolean     @default(false)
+
+  // Stats
+  viewCount    Int         @default(0)
+
+  companyId    String
+  company      User        @relation("JobPoster", fields: [companyId], references: [id], onDelete: Cascade)
+
+  applications JobApplication[]
+  savedBy      SavedJob[]
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([status, type, domain])
+  @@map("jobs")
+}
+
+model JobApplication {
+  id              String            @id @default(cuid())
+  status          ApplicationStatus @default(APPLIED)
+  coverLetter     String?           @db.Text
+  cvUrl           String?           // Cloudinary URL
+  phone           String?
+  additionalInfo  String?
+
+  studentId       String
+  student         User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  jobId           String
+  job             Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([studentId, jobId])
+  @@map("job_applications")
+}
+
+model SavedJob {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, jobId])
+  @@map("saved_jobs")
+}
+
+// ─── TUTORING ─────────────────────────────────────────────────────────────────
+
+model TutoringSession {
+  id          String         @id @default(cuid())
+  title       String
+  description String
+  subject     String
+  status      TutoringStatus @default(PENDING)
+  scheduledAt DateTime
+  durationMin Int            @default(60) // duration in minutes
+  creditCost  Int
+  meetingUrl  String?        // Jitsi/Daily.co URL
+
+  tutorId     String
+  tutor       User           @relation("TutorSessions", fields: [tutorId], references: [id], onDelete: Cascade)
+
+  studentId   String?
+  student     User?          @relation("StudentSessions", fields: [studentId], references: [id])
+
+  reviews     Review[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("tutoring_sessions")
+}
+
+// ─── COMMUNITY & FORUM ────────────────────────────────────────────────────────
+
+model ForumPost {
+  id        String          @id @default(cuid())
+  title     String
+  content   String          @db.Text
+  category  String
+  tags      String[]
+  status    ForumPostStatus @default(ACTIVE)
+  viewCount Int             @default(0)
+  likeCount Int             @default(0)
+
+  authorId  String
+  author    User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  comments  ForumComment[]
+  likes     ForumLike[]
+
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([category, status])
+  @@map("forum_posts")
+}
+
+model ForumComment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  likeCount Int      @default(0)
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  postId    String
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  parentId  String?
+  parent    ForumComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   ForumComment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("forum_comments")
+}
+
+model ForumLike {
+  id     String    @id @default(cuid())
+  userId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId String
+  post   ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("forum_likes")
+}
+
+// ─── MESSAGING ────────────────────────────────────────────────────────────────
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String   @db.Text
+  fileUrl    String?
+  isRead     Boolean  @default(false)
+
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@index([senderId, receiverId])
+  @@map("messages")
+}
+
+// ─── SOCIAL ───────────────────────────────────────────────────────────────────
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // "new_download", "application_update", "new_message", etc.
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  link      String?  // URL to navigate to
+  metadata  Json?
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
