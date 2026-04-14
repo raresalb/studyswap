@@ -1,164 +1,189 @@
+"use client";
+
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { useLang } from "@/components/i18n/language-provider";
+import { t } from "@/lib/i18n/translations";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import {
-  BookOpen,
-  Briefcase,
-  GraduationCap,
-  Sparkles,
-  Star,
-  Users,
-  Wallet,
-  ArrowRight,
-  CheckCircle,
-  Coins,
-  Shield,
-  Zap,
+  BookOpen, Users, Briefcase, Brain, MessageSquare,
+  Star, Globe, TrendingUp, Zap, ArrowRight, CheckCircle,
 } from "lucide-react";
 
+const stats = [
+  { key: "hero.stats.students", value: "120K+" },
+  { key: "hero.stats.materials", value: "45K+" },
+  { key: "hero.stats.universities", value: "800+" },
+  { key: "hero.stats.countries", value: "60+" },
+];
+
+const features = [
+  {
+    icon: BookOpen,
+    titleEn: "Study Materials",
+    descEn: "Upload and download PDFs, notes, and presentations. Earn credits for every download.",
+    color: "from-violet-500 to-purple-600",
+  },
+  {
+    icon: Users,
+    titleEn: "Peer Tutoring",
+    descEn: "Book 1-on-1 sessions with top students in your field. Learn from peers who just passed.",
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    icon: Briefcase,
+    titleEn: "Jobs & Internships",
+    descEn: "Find student-friendly jobs and internships. Companies post directly on the platform.",
+    color: "from-emerald-500 to-teal-500",
+  },
+  {
+    icon: Brain,
+    titleEn: "AI Study Assistant",
+    descEn: "Summarize documents, generate quizzes, and chat with an AI tutor powered by Claude.",
+    color: "from-orange-500 to-amber-500",
+  },
+  {
+    icon: MessageSquare,
+    titleEn: "Community Forum",
+    descEn: "Connect with students worldwide. Ask questions, share tips, build your network.",
+    color: "from-pink-500 to-rose-500",
+  },
+  {
+    icon: TrendingUp,
+    titleEn: "Credit Economy",
+    descEn: "Earn real money by sharing knowledge. Withdraw your credits via bank transfer or PayPal.",
+    color: "from-indigo-500 to-violet-500",
+  },
+];
+
+const creditPackages = [
+  { credits: 100, price: 5, popular: false },
+  { credits: 500, price: 20, popular: true },
+  { credits: 1000, price: 35, popular: false },
+];
+
+const testimonials = [
+  {
+    name: "Sarah M.",
+    country: "🇩🇪 Germany",
+    university: "TU Berlin",
+    text: "StudySwap helped me pass my exams and earn €200 by sharing my notes. Incredible platform!",
+    rating: 5,
+  },
+  {
+    name: "Marco R.",
+    country: "🇮🇹 Italy",
+    university: "Politecnico di Milano",
+    text: "Found my internship here and got tutored by a PhD student. This platform is a game changer.",
+    rating: 5,
+  },
+  {
+    name: "Anna K.",
+    country: "🇵🇱 Poland",
+    university: "AGH Kraków",
+    text: "The AI quiz generator saved me during finals. Uploaded my syllabus and got perfect practice questions.",
+    rating: 5,
+  },
+];
+
 export default function LandingPage() {
+  const { lang } = useLang();
+  const tr = (key: string) => t(lang, key);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SS</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">SS</span>
+              </div>
+              <span className="font-bold text-lg gradient-text">StudySwap</span>
             </div>
-            <span className="font-bold text-xl gradient-text">StudySwap</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="#features" className="hover:text-foreground transition-colors">Funcționalități</Link>
-            <Link href="#how-it-works" className="hover:text-foreground transition-colors">Cum funcționează</Link>
-            <Link href="#pricing" className="hover:text-foreground transition-colors">Credite</Link>
-            <Link href="#testimonials" className="hover:text-foreground transition-colors">Testimoniale</Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild><Link href="/login">Intră în cont</Link></Button>
-            <Button variant="gradient" asChild><Link href="/register">Înregistrează-te gratuit</Link></Button>
+
+            <div className="hidden md:flex items-center gap-6 text-sm">
+              <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">{tr("nav.features")}</a>
+              <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">{tr("nav.pricing")}</a>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <Link href="/login" className="hidden sm:inline-flex text-sm font-medium text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-accent transition-colors">
+                {tr("nav.login")}
+              </Link>
+              <Link href="/register" className="inline-flex items-center gap-1.5 text-sm font-semibold bg-gradient-to-r from-violet-600 to-blue-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+                {tr("nav.register")}
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero */}
       <section className="pt-32 pb-20 px-4 relative overflow-hidden">
-        {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-violet-50 via-background to-blue-50 dark:from-violet-950/20 dark:to-blue-950/20" />
-        <div className="absolute top-20 right-20 w-72 h-72 bg-violet-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-1/4 w-72 h-72 bg-violet-400/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl" />
 
-        <div className="container mx-auto text-center relative">
-          <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm">
-            🎓 Platforma #1 pentru studenți din România
-          </Badge>
+        <div className="max-w-5xl mx-auto text-center relative">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <div className="inline-flex items-center gap-2 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-sm font-medium px-4 py-2 rounded-full mb-6">
+              <Globe className="w-4 h-4" />
+              {tr("hero.badge")}
+            </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Studiezi mai smart,{" "}
-            <span className="gradient-text">câștigi real</span>
-          </h1>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
+              {tr("hero.title").split("\n")[0]}
+              <br />
+              <span className="gradient-text">{tr("hero.title").split("\n")[1]}</span>
+            </h1>
 
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            StudySwap conectează studenți din toată România. Schimbi materiale de studiu,
-            oferi tutoriat, aplici la joburi și folosești AI — totul într-un singur loc.
-          </p>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+              {tr("hero.subtitle")}
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button variant="gradient" size="xl" asChild>
-              <Link href="/register" className="gap-2">
-                Începe gratuit <ArrowRight className="w-5 h-5" />
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+              <Link href="/register" className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-blue-500 text-white font-semibold px-8 py-4 rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-violet-500/25 text-lg">
+                {tr("hero.cta.start")}
+                <ArrowRight className="w-5 h-5" />
               </Link>
-            </Button>
-            <Button variant="outline" size="xl" asChild>
-              <Link href="/login">Intră în cont</Link>
-            </Button>
-          </div>
+              <Link href="/login" className="inline-flex items-center gap-2 font-semibold px-8 py-4 rounded-xl border border-border hover:bg-accent transition-colors text-lg">
+                {tr("hero.cta.login")}
+              </Link>
+            </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto text-center">
-            {[
-              { value: "12,000+", label: "Studenți activi" },
-              { value: "45,000+", label: "Materiale" },
-              { value: "€120K+", label: "Câștiguri utilizatori" },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <p className="text-3xl font-bold gradient-text">{stat.value}</p>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+              {stats.map((stat) => (
+                <motion.div key={stat.key} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card border border-border rounded-2xl p-4">
+                  <div className="text-3xl font-bold gradient-text">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground mt-1">{tr(stat.key)}</div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-4 bg-muted/30">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Tot ce ai nevoie, într-o platformă
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              De la materiale de studiu la joburi și AI, StudySwap are tot ce îți trebuie pentru succes academic și profesional.
-            </p>
+      <section id="features" className="py-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">{tr("features.title")}</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{tr("features.subtitle")}</p>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: BookOpen,
-                title: "Marketplace Materiale",
-                description: "Cumpără și vinde notițe, rezumate, cursuri PDF. Câștigă credite pentru fiecare descărcare.",
-                color: "text-violet-600",
-                bg: "bg-violet-50 dark:bg-violet-950/30",
-              },
-              {
-                icon: GraduationCap,
-                title: "Tutoriat Peer-to-Peer",
-                description: "Sesiuni live sau înregistrate cu tutori verificați. Programare ușoară, plată în credite.",
-                color: "text-blue-600",
-                bg: "bg-blue-50 dark:bg-blue-950/30",
-              },
-              {
-                icon: Coins,
-                title: "Sistem de Credite",
-                description: "Câștigă credite prin contribuții și retrage-i ca bani reali. 500 credite = 15€ retragere.",
-                color: "text-yellow-600",
-                bg: "bg-yellow-50 dark:bg-yellow-950/30",
-              },
-              {
-                icon: Briefcase,
-                title: "Joburi & Internshipuri",
-                description: "Oportunități de angajare direct din platforma ta. Companii top din România caută studenți.",
-                color: "text-green-600",
-                bg: "bg-green-50 dark:bg-green-950/30",
-              },
-              {
-                icon: Sparkles,
-                title: "Asistent AI",
-                description: "Rezumă documente, generează quiz-uri, primește ajutor personalizat de la Claude AI.",
-                color: "text-pink-600",
-                bg: "bg-pink-50 dark:bg-pink-950/30",
-              },
-              {
-                icon: Users,
-                title: "Comunitate Activă",
-                description: "Forum pe domenii, sistem de follow, chat direct și notificări în timp real.",
-                color: "text-indigo-600",
-                bg: "bg-indigo-50 dark:bg-indigo-950/30",
-              },
-            ].map((feature) => {
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature, i) => {
               const Icon = feature.icon;
               return (
-                <Card key={feature.title} className="card-hover border-0 shadow-sm">
-                  <CardContent className="p-6">
-                    <div className={`w-12 h-12 rounded-xl ${feature.bg} flex items-center justify-center mb-4`}>
-                      <Icon className={`w-6 h-6 ${feature.color}`} />
-                    </div>
-                    <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground text-sm">{feature.description}</p>
-                  </CardContent>
-                </Card>
+                <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="bg-card border border-border rounded-2xl p-6 card-hover">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4`}>
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2">{feature.titleEn}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.descEn}</p>
+                </motion.div>
               );
             })}
           </div>
@@ -166,164 +191,128 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Cum funcționează</h2>
+      <section className="py-24 px-4 bg-muted/30">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">How it works</h2>
+            <p className="text-xl text-muted-foreground">Get started in minutes</p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid sm:grid-cols-3 gap-8">
             {[
-              { step: "1", title: "Creează-ți contul", desc: "Înregistrare gratuită cu email sau Google în sub 2 minute.", icon: Zap },
-              { step: "2", title: "Contribuie și câștigă", desc: "Uploadează materiale, oferă tutoriat și câștigă credite pentru fiecare contribuție.", icon: Coins },
-              { step: "3", title: "Retrage sau cheltuiește", desc: "Folosește creditele pentru materiale, tutori, sau retrage-i ca bani în cont.", icon: Wallet },
-            ].map((item) => {
+              { step: "1", icon: Users, title: "Create your account", desc: "Sign up as a student, company, or admin in seconds." },
+              { step: "2", icon: BookOpen, title: "Upload or explore", desc: "Share your notes and browse thousands of study materials." },
+              { step: "3", icon: TrendingUp, title: "Earn & grow", desc: "Collect credits, withdraw real money, land your dream job." },
+            ].map((item, i) => {
               const Icon = item.icon;
               return (
-                <div key={item.step} className="text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center mx-auto mb-4">
+                <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }} className="text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/25">
                     <Icon className="w-7 h-7 text-white" />
                   </div>
-                  <div className="text-sm font-medium text-muted-foreground mb-2">Pasul {item.step}</div>
-                  <h3 className="font-semibold text-xl mb-2">{item.title}</h3>
-                  <p className="text-muted-foreground">{item.desc}</p>
-                </div>
+                  <div className="text-xs font-bold text-violet-600 mb-1">STEP {item.step}</div>
+                  <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm">{item.desc}</p>
+                </motion.div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* Pricing / Credits */}
-      <section id="pricing" className="py-20 px-4 bg-muted/30">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Pachete de Credite</h2>
-            <p className="text-muted-foreground">Cumpără credite pentru acces premium la materiale și tutori</p>
+      {/* Pricing */}
+      <section id="pricing" className="py-24 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">{tr("pricing.title")}</h2>
+            <p className="text-xl text-muted-foreground">{tr("pricing.subtitle")}</p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            {[
-              { name: "Starter", credits: 100, price: 5, features: ["100 credite", "Acces materiale de bază", "1-2 descărcări"] },
-              { name: "Pro", credits: 500, price: 20, popular: true, features: ["500 credite", "Acces materiale premium", "5-10 descărcări", "2 sesiuni tutoriat"] },
-              { name: "Elite", credits: 1000, price: 35, features: ["1000 credite", "Acces complet", "Sesiuni tutoriat nelimitate", "Prioritate support"] },
-            ].map((pkg) => (
-              <Card key={pkg.name} className={`relative card-hover ${pkg.popular ? "border-primary shadow-lg scale-105" : ""}`}>
+          <div className="grid sm:grid-cols-3 gap-6">
+            {creditPackages.map((pkg, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className={`relative bg-card border rounded-2xl p-6 text-center ${pkg.popular ? "border-violet-500 shadow-lg shadow-violet-500/10" : "border-border"}`}>
                 {pkg.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-violet-600 to-blue-500 text-white border-0">Popular</Badge>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-blue-500 text-white text-xs font-bold px-4 py-1 rounded-full">
+                    Most popular
                   </div>
                 )}
-                <CardContent className="p-6 text-center">
-                  <h3 className="font-bold text-xl mb-2">{pkg.name}</h3>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold">{pkg.price}€</span>
-                    <span className="text-muted-foreground"> / {pkg.credits} credite</span>
-                  </div>
-                  <ul className="space-y-2 mb-6 text-sm text-left">
-                    {pkg.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button variant={pkg.popular ? "gradient" : "outline"} className="w-full" asChild>
-                    <Link href="/register">Cumpără acum</Link>
-                  </Button>
-                </CardContent>
-              </Card>
+                <div className="text-4xl font-bold gradient-text mb-1">{pkg.credits}</div>
+                <div className="text-muted-foreground text-sm mb-4">{tr("common.credits")}</div>
+                <div className="text-3xl font-bold mb-6">€{pkg.price}</div>
+                <Link href="/register" className={`block w-full py-3 rounded-xl font-semibold transition-opacity ${pkg.popular ? "bg-gradient-to-r from-violet-600 to-blue-500 text-white hover:opacity-90" : "bg-accent hover:bg-accent/80"}`}>
+                  Get started
+                </Link>
+                <div className="mt-4 space-y-2">
+                  {["Instant delivery", "Never expires", "Use for any feature"].map((f) => (
+                    <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             ))}
           </div>
-
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            <Shield className="w-4 h-4 inline mr-1" />
-            Plăți securizate prin Stripe. Poți retrage creditele câștigate ca bani reali.
-          </p>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ce spun studenții</h2>
+      <section className="py-24 px-4 bg-muted/30">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Loved by students worldwide</h2>
+            <p className="text-xl text-muted-foreground">Join 120,000+ students already on StudySwap</p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[
-              { name: "Alexandra M.", uni: "UPB, Informatică", text: "Am câștigat 200€ în prima lună din materialele mele de Algoritmi. StudySwap e genial!", rating: 5 },
-              { name: "Radu P.", uni: "ASE, Finanțe", text: "Găsesc tutori pentru orice materie în câteva minute. Mi-a salvat sesiunea de examene.", rating: 5 },
-              { name: "Ioana T.", uni: "UMF Cluj, Medicină", text: "Materialele de Anatomie de pe platformă sunt incredibil de bune. Merită fiecare credit!", rating: 5 },
-            ].map((t) => (
-              <Card key={t.name} className="card-hover">
-                <CardContent className="p-6">
-                  <div className="flex mb-3">
-                    {Array.from({ length: t.rating }).map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground mb-4 italic">&ldquo;{t.text}&rdquo;</p>
-                  <div>
-                    <p className="font-semibold">{t.name}</p>
-                    <p className="text-sm text-muted-foreground">{t.uni}</p>
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="grid sm:grid-cols-3 gap-6">
+            {testimonials.map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="bg-card border border-border rounded-2xl p-6">
+                <div className="flex mb-3">
+                  {Array.from({ length: item.rating }).map((_, j) => (
+                    <Star key={j} className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{item.text}</p>
+                <div>
+                  <div className="font-semibold text-sm">{item.name}</div>
+                  <div className="text-xs text-muted-foreground">{item.country} · {item.university}</div>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 bg-gradient-to-br from-violet-600 to-blue-600">
-        <div className="container mx-auto text-center text-white">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Alătură-te a 12,000+ studenți
-          </h2>
-          <p className="text-violet-100 text-lg mb-8 max-w-xl mx-auto">
-            Înregistrare gratuită. Fără card de credit. Primești 50 credite bonus la prima înregistrare.
-          </p>
-          <Button size="xl" variant="outline" className="bg-white text-violet-600 hover:bg-white/90 border-0" asChild>
-            <Link href="/register" className="gap-2">
-              Înregistrează-te gratuit <ArrowRight className="w-5 h-5" />
+      <section className="py-24 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-gradient-to-br from-violet-600 to-blue-500 rounded-3xl p-12 text-white">
+            <Zap className="w-12 h-12 mx-auto mb-4 opacity-90" />
+            <h2 className="text-4xl font-bold mb-4">Ready to study smarter?</h2>
+            <p className="text-violet-100 mb-8 text-lg">Join thousands of students already using StudySwap.</p>
+            <Link href="/register" className="inline-flex items-center gap-2 bg-white text-violet-600 font-bold px-8 py-4 rounded-xl hover:bg-violet-50 transition-colors text-lg">
+              {tr("hero.cta.start")}
+              <ArrowRight className="w-5 h-5" />
             </Link>
-          </Button>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-border">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">SS</span>
-                </div>
-                <span className="font-bold gradient-text">StudySwap</span>
+      <footer className="border-t border-border py-12 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">SS</span>
               </div>
-              <p className="text-sm text-muted-foreground">Platforma educațională și socială pentru studenții din România.</p>
+              <span className="font-bold gradient-text">StudySwap</span>
             </div>
-            {[
-              { title: "Platformă", links: ["Marketplace", "Tutoriat", "Joburi", "AI Asistent"] },
-              { title: "Companie", links: ["Despre noi", "Blog", "Cariere", "Contact"] },
-              { title: "Legal", links: ["Termeni și condiții", "Politică GDPR", "Cookie Policy", "Confidențialitate"] },
-            ].map((col) => (
-              <div key={col.title}>
-                <h4 className="font-semibold mb-3">{col.title}</h4>
-                <ul className="space-y-2">
-                  {col.links.map((link) => (
-                    <li key={link}>
-                      <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{link}</Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <p className="text-sm text-muted-foreground">{tr("footer.tagline")}</p>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <Link href="/login" className="hover:text-foreground transition-colors">{tr("nav.login")}</Link>
+              <Link href="/register" className="hover:text-foreground transition-colors">{tr("nav.register")}</Link>
+            </div>
           </div>
-          <div className="border-t border-border pt-6 text-center text-sm text-muted-foreground">
-            © 2026 StudySwap. Toate drepturile rezervate. Construit cu ❤️ pentru studenți.
+          <div className="mt-6 pt-6 border-t border-border text-center text-xs text-muted-foreground">
+            © {new Date().getFullYear()} StudySwap. All rights reserved.
           </div>
         </div>
       </footer>

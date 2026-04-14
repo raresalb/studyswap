@@ -2,14 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { awardCredits } from "@/lib/credits";
-import { TransactionType } from "@prisma/client";
+import { TransactionType, UserRole } from "@prisma/client";
+
+// Admin code — in production this should be an env variable
+const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE ?? "STUDYSWAP_ADMIN_2024";
 
 const schema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(8),
-  referralCode: z.string().optional(),
+  role: z.enum(["STUDENT", "COMPANY", "ADMIN"]).default("STUDENT"),
+  adminCode: z.string().optional(),
+  university: z.string().optional(),
+  companyName: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -17,63 +22,57 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = schema.parse(body);
 
+    // Validate admin code
+    if (data.role === "ADMIN") {
+      if (!data.adminCode || data.adminCode !== ADMIN_SECRET_CODE) {
+        return NextResponse.json({ message: "Invalid admin access code" }, { status: 403 });
+      }
+    }
+
     // Check if email already exists
     const existing = await db.user.findUnique({ where: { email: data.email } });
     if (existing) {
-      return NextResponse.json({ message: "Emailul este deja înregistrat" }, { status: 400 });
+      return NextResponse.json({ message: "Email is already registered" }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
     const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    // Find referrer
-    let referredById: string | undefined;
-    if (data.referralCode) {
-      const referrer = await db.user.findUnique({
-        where: { referralCode: data.referralCode },
-      });
-      if (referrer) referredById = referrer.id;
-    }
+    // Welcome credits: 50 for students, 0 for company/admin
+    const welcomeCredits = data.role === "STUDENT" ? 50 : 0;
 
     const user = await db.user.create({
       data: {
         name: data.name,
         email: data.email,
         password: hashedPassword,
+        role: data.role as UserRole,
         referralCode,
-        referredBy: referredById,
-        credits: 50, // welcome bonus
-        totalEarned: 50,
+        university: data.university,
+        credits: welcomeCredits,
+        totalEarned: welcomeCredits,
       },
     });
 
-    // Record welcome bonus transaction
-    await db.transaction.create({
-      data: {
-        userId: user.id,
-        type: TransactionType.EARN_REFERRAL,
-        status: "COMPLETED",
-        amount: 50,
-        description: "Bonus de bun venit",
-      },
-    });
-
-    // Award referral bonus to referrer
-    if (referredById) {
-      await awardCredits({
-        userId: referredById,
-        amount: 50,
-        type: TransactionType.EARN_REFERRAL,
-        description: `Bonus referral: ${data.name} s-a înregistrat`,
+    // Record welcome bonus for students
+    if (welcomeCredits > 0) {
+      await db.transaction.create({
+        data: {
+          userId: user.id,
+          type: TransactionType.EARN_REFERRAL,
+          status: "COMPLETED",
+          amount: welcomeCredits,
+          description: "Welcome bonus",
+        },
       });
     }
 
-    return NextResponse.json({ success: true, userId: user.id });
+    return NextResponse.json({ success: true, userId: user.id, role: user.role });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: "Date invalide", errors: error.errors }, { status: 422 });
+      return NextResponse.json({ message: "Invalid data", errors: error.errors }, { status: 422 });
     }
     console.error("Register error:", error);
-    return NextResponse.json({ message: "Eroare internă" }, { status: 500 });
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
