@@ -26,14 +26,14 @@ import { getInitials } from "@/lib/utils";
 import { useState } from "react";
 
 const studentNav = [
-  { href: "/dashboard/feed", label: "Feed", icon: Home },
-  { href: "/dashboard/marketplace", label: "Materiale", icon: BookOpen },
-  { href: "/dashboard/tutoring", label: "Tutoriat", icon: GraduationCap },
-  { href: "/dashboard/jobs", label: "Joburi", icon: Briefcase },
-  { href: "/dashboard/wallet", label: "Portofel", icon: Wallet },
-  { href: "/dashboard/community", label: "Comunitate", icon: Users },
-  { href: "/dashboard/messages", label: "Mesaje", icon: MessageSquare },
-  { href: "/dashboard/ai", label: "AI Asistent", icon: Sparkles },
+  { href: "/feed", label: "Feed", icon: Home },
+  { href: "/marketplace", label: "Materiale", icon: BookOpen },
+  { href: "/tutoring", label: "Tutoriat", icon: GraduationCap },
+  { href: "/jobs", label: "Joburi", icon: Briefcase },
+  { href: "/wallet", label: "Portofel", icon: Wallet },
+  { href: "/community", label: "Comunitate", icon: Users },
+  { href: "/messages", label: "Mesaje", icon: MessageSquare },
+  { href: "/ai", label: "AI Asistent", icon: Sparkles },
 ];
 
 const companyNav = [
@@ -141,7 +141,7 @@ export function Sidebar({ unreadMessages = 0, unreadNotifications = 0 }: Sidebar
 
       {/* User info */}
       <div className="border-t border-border px-2 py-3">
-        <Link href="/dashboard/profile">
+        <Link href={session?.user?.id ? `/profile/${session.user.id}` : "/feed"}>
           <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent transition-colors">
             <Avatar className="w-8 h-8 flex-shrink-0">
               <AvatarImage src={session?.user?.image ?? ""} />

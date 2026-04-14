@@ -26,7 +26,7 @@ export default async function AdminLayout({
   const role = (session?.user as any)?.role;
 
   if (!session || role !== "ADMIN") {
-    redirect("/dashboard/feed");
+    redirect("/feed");
   }
 
   return (
