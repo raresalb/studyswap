@@ -4,18 +4,9 @@ import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import {
-  Bell,
-  Moon,
-  Sun,
-  Search,
-  ChevronDown,
-  Settings,
-  LogOut,
-  User,
-  Coins,
+  Bell, Moon, Sun, Settings, LogOut, User, Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,45 +28,43 @@ export function Header({ unreadNotifications = 0 }: HeaderProps) {
   const credits = (session?.user as { credits?: number })?.credits ?? 0;
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center px-6 gap-4">
-      {/* Search */}
-      <div className="relative flex-1 max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Caută materiale, joburi, tutori..."
-          className="pl-9 bg-muted/50"
-        />
+    <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-3 flex-shrink-0">
+      {/* Logo - mobile only */}
+      <div className="flex items-center gap-2 md:hidden">
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center">
+          <span className="text-white font-bold text-xs">SS</span>
+        </div>
+        <span className="font-bold gradient-text">StudySwap</span>
       </div>
 
-      <div className="flex items-center gap-2 ml-auto">
-        {/* Credits display */}
-        <Link href="/dashboard/wallet">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Coins className="w-4 h-4 text-yellow-500" />
-            <span className="font-semibold">{credits.toLocaleString()}</span>
-            <span className="text-muted-foreground text-xs">credite</span>
-          </Button>
+      <div className="flex items-center gap-1.5 ml-auto">
+        {/* Credits */}
+        <Link href="/wallet">
+          <div className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 px-2.5 py-1.5 rounded-lg text-sm font-semibold">
+            <Coins className="w-3.5 h-3.5" />
+            <span>{credits.toLocaleString()}</span>
+          </div>
         </Link>
 
-        {/* Dark mode toggle */}
+        {/* Dark mode */}
         <Button
           variant="ghost"
           size="icon"
+          className="w-8 h-8"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
           <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative" asChild>
-          <Link href="/dashboard/notifications">
+        <Button variant="ghost" size="icon" className="w-8 h-8 relative" asChild>
+          <Link href="/settings">
             <Bell className="h-4 w-4" />
             {unreadNotifications > 0 && (
               <Badge
                 variant="destructive"
-                className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center"
+                className="absolute -top-0.5 -right-0.5 h-4 w-4 p-0 text-[10px] flex items-center justify-center"
               >
                 {unreadNotifications > 9 ? "9+" : unreadNotifications}
               </Badge>
@@ -83,33 +72,34 @@ export function Header({ unreadNotifications = 0 }: HeaderProps) {
           </Link>
         </Button>
 
-        {/* User menu */}
+        {/* User dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2 px-2">
-              <Avatar className="w-7 h-7">
+            <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full p-0">
+              <Avatar className="w-8 h-8">
                 <AvatarImage src={session?.user?.image ?? ""} />
                 <AvatarFallback className="bg-primary/10 text-primary text-xs">
                   {getInitials(session?.user?.name ?? "U")}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium hidden sm:block">
-                {session?.user?.name?.split(" ")[0]}
-              </span>
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-52">
+            <div className="px-2 py-1.5">
+              <p className="text-sm font-medium">{session?.user?.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{session?.user?.email}</p>
+            </div>
+            <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/dashboard/profile" className="gap-2">
+              <Link href={session?.user?.id ? `/profile/${session.user.id}` : "/feed"} className="gap-2">
                 <User className="w-4 h-4" />
-                Profilul meu
+                My Profile
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings" className="gap-2">
+              <Link href="/settings" className="gap-2">
                 <Settings className="w-4 h-4" />
-                Setări
+                Settings
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -118,7 +108,7 @@ export function Header({ unreadNotifications = 0 }: HeaderProps) {
               onClick={() => signOut({ callbackUrl: "/" })}
             >
               <LogOut className="w-4 h-4" />
-              Deconectare
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

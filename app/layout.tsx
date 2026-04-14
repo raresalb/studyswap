@@ -9,6 +9,13 @@ import { auth } from "@/lib/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: {
     default: "StudySwap — #1 Platform for International Students",
