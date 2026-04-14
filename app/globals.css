@@ -99,4 +99,32 @@
 html, body {
   height: 100%;
   overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth page transitions */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Button press feel */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Prevent horizontal scroll on mobile */
+.overflow-x-hidden {
+  overflow-x: hidden;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better mobile input zoom prevention */
+input, textarea, select {
+  font-size: 16px;
 }

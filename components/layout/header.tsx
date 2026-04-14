@@ -7,6 +7,7 @@ import {
   Bell, Moon, Sun, Settings, LogOut, User, Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,11 +31,8 @@ export function Header({ unreadNotifications = 0 }: HeaderProps) {
   return (
     <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-3 flex-shrink-0">
       {/* Logo - mobile only */}
-      <div className="flex items-center gap-2 md:hidden">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center">
-          <span className="text-white font-bold text-xs">SS</span>
-        </div>
-        <span className="font-bold gradient-text">StudySwap</span>
+      <div className="md:hidden">
+        <Logo iconSize={26} textClassName="text-sm" />
       </div>
 
       <div className="flex items-center gap-1.5 ml-auto">

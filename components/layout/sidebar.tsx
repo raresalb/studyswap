@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Logo } from "@/components/logo";
 import {
   BookOpen,
   Briefcase,
@@ -14,10 +15,8 @@ import {
   GraduationCap,
   Sparkles,
   LayoutDashboard,
-  Settings,
   ChevronLeft,
   ChevronRight,
-  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -73,23 +72,11 @@ export function Sidebar({ unreadMessages = 0, unreadNotifications = 0 }: Sidebar
     >
       {/* Logo */}
       <div className="flex items-center px-4 py-5 border-b border-border">
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm">SS</span>
-          </div>
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                className="font-bold text-lg gradient-text whitespace-nowrap"
-              >
-                StudySwap
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </div>
+        <Logo
+          iconSize={30}
+          showText={!collapsed}
+          textClassName="text-base whitespace-nowrap"
+        />
       </div>
 
       {/* Navigation */}
