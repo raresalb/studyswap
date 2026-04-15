@@ -1,21 +1,14 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  BookOpen,
-  Briefcase,
-  Coins,
-  Download,
-  Star,
-  TrendingUp,
-  Sparkles,
-  ArrowRight,
+  BookOpen, Briefcase, Coins, Download,
+  Star, TrendingUp, Sparkles, ArrowRight, Wallet,
 } from "lucide-react";
-import { getInitials, timeAgo, formatCredits } from "@/lib/utils";
+import { getInitials, timeAgo } from "@/lib/utils";
+
 
 export default async function FeedPage() {
   const session = await auth();
@@ -24,7 +17,7 @@ export default async function FeedPage() {
   const [user, recentMaterials, recentJobs, transactions] = await Promise.all([
     db.user.findUnique({
       where: { id: userId },
-      select: { name: true, credits: true, totalEarned: true, reputationPoints: true, level: true },
+      select: { name: true, credits: true, totalEarned: true, level: true },
     }),
     db.material.findMany({
       where: { status: "APPROVED" },
@@ -45,177 +38,191 @@ export default async function FeedPage() {
     }),
   ]);
 
+  const firstName = user?.name?.split(" ")[0] ?? "there";
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-5">
+
       {/* Welcome banner */}
-      <div className="bg-gradient-to-r from-violet-600 to-blue-600 rounded-2xl p-6 text-white">
-        <h1 className="text-2xl font-bold mb-1">Bună, {user?.name?.split(" ")[0]}! 👋</h1>
-        <p className="text-violet-100 mb-4">Continuă să înveți și să câștigi credite astăzi.</p>
-        <div className="flex gap-6">
-          <div>
-            <p className="text-3xl font-bold">{user?.credits?.toLocaleString()}</p>
-            <p className="text-violet-200 text-sm">Credite disponibile</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold">{user?.totalEarned?.toLocaleString()}</p>
-            <p className="text-violet-200 text-sm">Total câștigat</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold">Niv. {user?.level}</p>
-            <p className="text-violet-200 text-sm">Nivel reputație</p>
-          </div>
+      <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-blue-600 rounded-2xl p-5 text-white">
+        <h1 className="text-xl sm:text-2xl font-bold mb-1">Hey, {firstName}! 👋</h1>
+        <p className="text-violet-200 text-sm mb-4">Keep learning and earning credits today.</p>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { value: user?.credits?.toLocaleString() ?? "0", label: "Credits" },
+            { value: user?.totalEarned?.toLocaleString() ?? "0", label: "Total earned" },
+            { value: `Lvl ${user?.level ?? 1}`, label: "Level" },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-white/10 rounded-xl p-3 text-center">
+              <p className="text-lg sm:text-2xl font-bold">{stat.value}</p>
+              <p className="text-violet-200 text-xs mt-0.5">{stat.label}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent materials */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-violet-600" />
-              Materiale Recente
-            </h2>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/dashboard/marketplace" className="gap-1">
-                Vezi toate <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
-          </div>
+      {/* Quick actions — mobile only */}
+      <div className="grid grid-cols-4 gap-2 sm:hidden">
+        {[
+          { label: "Upload", href: "/marketplace/upload", icon: BookOpen, color: "text-violet-600 bg-violet-50 dark:bg-violet-950/30" },
+          { label: "Credits", href: "/wallet", icon: Wallet, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30" },
+          { label: "Tutoring", href: "/tutoring", icon: Star, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30" },
+          { label: "Jobs", href: "/jobs", icon: Briefcase, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30" },
+        ].map((a) => {
+          const Icon = a.icon;
+          return (
+            <Link key={a.href} href={a.href}>
+              <div className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl ${a.color} transition-opacity active:opacity-70`}>
+                <Icon className="w-5 h-5" />
+                <span className="text-[11px] font-medium">{a.label}</span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
 
-          <div className="space-y-3">
-            {recentMaterials.map((m) => (
-              <Link key={m.id} href={`/dashboard/marketplace/${m.id}`}>
-                <Card className="card-hover border-0 shadow-sm">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-violet-50 dark:bg-violet-950/30 flex items-center justify-center flex-shrink-0">
-                      <BookOpen className="w-5 h-5 text-violet-600" />
+      <div className="grid lg:grid-cols-3 gap-5">
+        {/* Main content */}
+        <div className="lg:col-span-2 space-y-5">
+
+          {/* Recent materials */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-violet-600" />
+                Recent Materials
+              </h2>
+              <Link href="/marketplace" className="text-xs text-violet-600 flex items-center gap-1 hover:underline">
+                See all <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {recentMaterials.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6">No materials yet</p>
+              )}
+              {recentMaterials.map((m) => (
+                <Link key={m.id} href={`/marketplace/${m.id}`}>
+                  <div className="bg-card border border-border rounded-xl p-3.5 flex items-center gap-3 active:opacity-70 transition-opacity hover:border-violet-200 dark:hover:border-violet-800">
+                    <div className="w-9 h-9 rounded-lg bg-violet-50 dark:bg-violet-950/30 flex items-center justify-center flex-shrink-0">
+                      <BookOpen className="w-4 h-4 text-violet-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{m.title}</p>
-                      <p className="text-sm text-muted-foreground">{m.category} • {timeAgo(m.createdAt)}</p>
+                      <p className="font-medium text-sm truncate">{m.title}</p>
+                      <p className="text-xs text-muted-foreground">{m.category} · {timeAgo(m.createdAt)}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="font-semibold text-sm">
-                        {m.creditCost === 0 ? (
-                          <Badge variant="success">Gratuit</Badge>
-                        ) : (
-                          <span className="text-violet-600">{m.creditCost} cr.</span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
+                      {m.creditCost === 0 ? (
+                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full">Free</span>
+                      ) : (
+                        <span className="text-xs font-semibold text-violet-600">{m.creditCost} cr</span>
+                      )}
+                      <p className="text-xs text-muted-foreground flex items-center gap-0.5 justify-end mt-0.5">
                         <Download className="w-3 h-3" /> {m.downloadCount}
                       </p>
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Recent Jobs */}
-          <div className="flex items-center justify-between mt-6">
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <Briefcase className="w-5 h-5 text-blue-600" />
-              Joburi Disponibile
-            </h2>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/dashboard/jobs" className="gap-1">
-                Vezi toate <ArrowRight className="w-4 h-4" />
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-blue-600" />
+                Open Jobs
+              </h2>
+              <Link href="/jobs" className="text-xs text-violet-600 flex items-center gap-1 hover:underline">
+                See all <ArrowRight className="w-3 h-3" />
               </Link>
-            </Button>
-          </div>
-
-          <div className="space-y-3">
-            {recentJobs.map((job) => (
-              <Link key={job.id} href={`/dashboard/jobs/${job.id}`}>
-                <Card className="card-hover border-0 shadow-sm">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <Avatar className="w-10 h-10">
+            </div>
+            <div className="space-y-2">
+              {recentJobs.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6">No jobs yet</p>
+              )}
+              {recentJobs.map((job) => (
+                <Link key={job.id} href={`/jobs/${job.id}`}>
+                  <div className="bg-card border border-border rounded-xl p-3.5 flex items-center gap-3 active:opacity-70 transition-opacity hover:border-blue-200 dark:hover:border-blue-800">
+                    <Avatar className="w-9 h-9 flex-shrink-0">
                       <AvatarImage src={job.company.companyLogo ?? ""} />
-                      <AvatarFallback className="bg-blue-50 text-blue-600">
+                      <AvatarFallback className="bg-blue-50 text-blue-600 text-xs">
                         {getInitials(job.company.name ?? "C")}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{job.title}</p>
-                      <p className="text-sm text-muted-foreground">{job.company.name} • {job.location}</p>
+                      <p className="font-medium text-sm truncate">{job.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{job.company.name} · {job.location}</p>
                     </div>
-                    <div className="flex-shrink-0">
-                      <Badge variant="info">{job.type.replace("_", " ")}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                    <span className="text-xs bg-blue-50 dark:bg-blue-950/30 text-blue-600 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+                      {job.type.replace("_", " ")}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Sidebar widgets */}
-        <div className="space-y-4">
-          {/* Quick stats */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" /> Activitate Recentă
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {transactions.slice(0, 4).map((tx) => (
+        {/* Sidebar widgets — hidden on mobile (accessed via nav) */}
+        <div className="hidden lg:flex flex-col gap-4">
+
+          {/* Recent activity */}
+          <div className="bg-card border border-border rounded-2xl p-4">
+            <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" /> Recent Activity
+            </h3>
+            <div className="space-y-2.5">
+              {transactions.slice(0, 5).map((tx) => (
                 <div key={tx.id} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground truncate">{tx.description}</span>
-                  <span className={tx.amount > 0 ? "text-green-600 font-medium" : "text-red-500 font-medium"}>
-                    {tx.amount > 0 ? "+" : ""}{tx.amount} cr.
+                  <span className="text-muted-foreground text-xs truncate">{tx.description}</span>
+                  <span className={`text-xs font-semibold flex-shrink-0 ml-2 ${tx.amount > 0 ? "text-emerald-600" : "text-red-500"}`}>
+                    {tx.amount > 0 ? "+" : ""}{tx.amount} cr
                   </span>
                 </div>
               ))}
               {transactions.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-2">
-                  Nicio activitate încă
-                </p>
+                <p className="text-xs text-muted-foreground text-center py-2">No activity yet</p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* AI tip */}
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                <span className="font-medium text-sm">AI Asistent</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">
-                Încearcă funcția de rezumat AI — uploadează un PDF și primești rezumatul în secunde!
-              </p>
-              <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href="/dashboard/ai">Încearcă acum</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20 border border-pink-100 dark:border-pink-900/30 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              <span className="font-semibold text-sm">AI Assistant</span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Upload a PDF and get an instant AI summary in seconds!
+            </p>
+            <Link href="/ai" className="block w-full py-2 rounded-lg bg-white dark:bg-white/10 text-center text-xs font-semibold hover:opacity-80 transition-opacity border border-purple-100 dark:border-purple-900/30">
+              Try it now
+            </Link>
+          </div>
 
           {/* Quick actions */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Acțiuni Rapide</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-2">
+          <div className="bg-card border border-border rounded-2xl p-4">
+            <h3 className="font-semibold text-sm mb-3">Quick Actions</h3>
+            <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Uploadează material", href: "/dashboard/marketplace/upload", icon: BookOpen, color: "text-violet-600" },
-                { label: "Cumpără credite", href: "/dashboard/wallet", icon: Coins, color: "text-yellow-600" },
-                { label: "Caută tutori", href: "/dashboard/tutoring", icon: Star, color: "text-blue-600" },
-                { label: "Aplică la job", href: "/dashboard/jobs", icon: Briefcase, color: "text-green-600" },
+                { label: "Upload material", href: "/marketplace/upload", icon: BookOpen, color: "text-violet-600" },
+                { label: "Buy credits", href: "/wallet", icon: Coins, color: "text-amber-600" },
+                { label: "Find tutors", href: "/tutoring", icon: Star, color: "text-blue-600" },
+                { label: "Apply to job", href: "/jobs", icon: Briefcase, color: "text-emerald-600" },
               ].map((action) => {
                 const Icon = action.icon;
                 return (
                   <Link key={action.href} href={action.href}>
-                    <div className="p-3 rounded-lg border bg-muted/30 hover:bg-muted transition-colors text-center cursor-pointer">
-                      <Icon className={`w-5 h-5 mx-auto mb-1 ${action.color}`} />
+                    <div className="p-3 rounded-xl border bg-muted/30 hover:bg-muted transition-colors text-center cursor-pointer active:opacity-70">
+                      <Icon className={`w-4 h-4 mx-auto mb-1 ${action.color}`} />
                       <p className="text-xs font-medium leading-tight">{action.label}</p>
                     </div>
                   </Link>
                 );
               })}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
